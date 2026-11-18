@@ -6,17 +6,20 @@ const { getMeta } = require('./metadata');
 const yts = require('./sources/yts');
 const eztv = require('./sources/eztv');
 const torznab = require('./sources/torznab');
+const apibay = require('./sources/apibay');
 
 const FEED_TTL = (parseInt(process.env.FEED_TTL_MIN, 10) || 30) * 60 * 1000;
-const SOURCES = [yts, eztv, torznab];
+const SOURCES = [yts, eztv, apibay, torznab];
 
 async function collect(type, tier, cfg) {
-  const results = await Promise.allSettled(
-    SOURCES.filter((s) => s.types.includes(type)).map((s) => s.fetch(type, tier, cfg))
-  );
+  const active = SOURCES.filter((s) => s.types.includes(type));
+  const results = await Promise.allSettled(active.map((s) => s.fetch(type, tier, cfg)));
+  if (process.env.LOG_SOURCES) {
+    results.forEach((r, i) => console.log(`[feed] ${type}/${tier} ${active[i].name}: ${r.status === 'fulfilled' ? r.value.length + ' releases' : 'FAILED ' + (r.reason && r.reason.message)}`));
+  }
   results
     .filter((r) => r.status === 'rejected')
-    .forEach((r) => console.warn(`[feed] source failed for ${type}/${tier}: ${r.reason && r.reason.message}`));
+    .forEach((r) => console.warn(`[feed] a source failed for ${type}/${tier}: ${r.reason && r.reason.message}`));
 
   // Merge: newest release per IMDb ID wins, but keep metadata if any source had it.
   const byId = new Map();

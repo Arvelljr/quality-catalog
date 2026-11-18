@@ -3,14 +3,28 @@
 const { getJson } = require('../http');
 const { parseRelease } = require('../quality');
 
-const BASE = process.env.YTS_URL || 'https://yts.mx/api/v2';
+// YTS moves domains often; try each until one answers.
+const BASES = (process.env.YTS_URL || 'https://yts.mx/api/v2,https://yts.lt/api/v2,https://yts.am/api/v2,https://yts.ag/api/v2,https://yts.rs/api/v2,https://yts.bz/api/v2')
+  .split(',');
+let workingBase = null;
+
+async function ytsGet(pathAndQuery) {
+  const order = workingBase ? [workingBase, ...BASES.filter((b) => b !== workingBase)] : BASES;
+  let lastErr;
+  for (const base of order) {
+    try {
+      const data = await getJson(`${base}${pathAndQuery}`, { timeout: 10000 });
+      if (data && data.status === 'ok') { workingBase = base; return data; }
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('No YTS mirror answered');
+}
 const QUALITY_PARAM = { '4k': '2160p', '1080p': '1080p' };
 
 async function fetchMovies(tier, pages = 3) {
   const out = [];
   for (let page = 1; page <= pages; page++) {
-    const url = `${BASE}/list_movies.json?quality=${QUALITY_PARAM[tier]}&sort_by=date_added&order_by=desc&limit=50&page=${page}`;
-    const data = await getJson(url);
+    const data = await ytsGet(`/list_movies.json?quality=${QUALITY_PARAM[tier]}&sort_by=date_added&order_by=desc&limit=50&page=${page}`);
     const movies = (data && data.data && data.data.movies) || [];
     for (const m of movies) {
       const torrent = (m.torrents || [])

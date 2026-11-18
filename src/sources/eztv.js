@@ -3,12 +3,20 @@
 const { getJson } = require('../http');
 const { parseRelease } = require('../quality');
 
-const BASE = process.env.EZTV_URL || 'https://eztvx.to/api';
+const BASES = (process.env.EZTV_URL || 'https://eztvx.to/api,https://eztv.re/api,https://eztv.wf/api').split(',');
 
-async function fetchSeries(tier, pages = 5) {
+async function eztvGet(q) {
+  let lastErr;
+  for (const b of BASES) {
+    try { return await getJson(`${b}${q}`, { timeout: 15000 }); } catch (e) { lastErr = e; }
+  }
+  throw lastErr;
+}
+
+async function fetchSeries(tier, pages = 10) {
   const out = [];
   for (let page = 1; page <= pages; page++) {
-    const data = await getJson(`${BASE}/get-torrents?limit=100&page=${page}`);
+    const data = await eztvGet(`/get-torrents?limit=100&page=${page}`);
     const torrents = (data && data.torrents) || [];
     for (const t of torrents) {
       if (!t.imdb_id || t.imdb_id === '0') continue;
