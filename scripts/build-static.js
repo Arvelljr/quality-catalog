@@ -1,4 +1,4 @@
-// Builds a static version of the add-on (manifest + catalog JSON files) into ./dist
+// Builds a static version of the add-on (manifest + catalog JSON + posters) into ./dist
 // so it can be hosted for free on GitHub Pages. Run by the GitHub Action on a schedule.
 
 const fs = require('fs');
@@ -8,9 +8,15 @@ const { parseConfig } = require('../src/config');
 const { applyFilters } = require('../src/filters');
 const { getFeed } = require('../src/feed');
 const { toMetaPreview } = require('../src/catalog');
+const { buildPosters } = require('./posters');
 
-const OUT = path.join(__dirname, '..', 'dist');
-const cfg = parseConfig(JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'filters.json'), 'utf8')));
+const ROOT = path.join(__dirname, '..');
+const OUT = path.join(ROOT, 'dist');
+const settings = JSON.parse(fs.readFileSync(path.join(ROOT, 'filters.json'), 'utf8'));
+const cfg = parseConfig(settings);
+const SITE_URL = (process.env.SITE_URL || '').replace(/\/?$/, '/');
+const TITLE_POSTERS = settings.titleOnPoster !== false && SITE_URL !== '/';
+const PER_FILE = 100;
 
 function write(rel, data) {
   const file = path.join(OUT, rel);
@@ -30,22 +36,41 @@ function write(rel, data) {
   delete staticManifest.config;
   write('manifest.json', staticManifest);
 
+  // 1. Build every catalog file's item list.
+  const files = []; // { rel, row, items }
   const summary = [];
   let total = 0;
   for (const row of ROWS) {
     const feed = await getFeed(row.type, row.tier, cfg);
     const base = applyFilters(feed, cfg);
-    const metas = (items) => ({ metas: items.slice(0, 100).map((i) => toMetaPreview(i, row.tier)) });
-    write(`catalog/${row.type}/${row.id}.json`, metas(base));
-    for (const g of GENRES) {
-      write(`catalog/${row.type}/${row.id}/genre=${g}.json`, metas(applyFilters(base, parseConfig({}), g)));
-    }
     total += feed.length;
+    files.push({ rel: `catalog/${row.type}/${row.id}.json`, row, items: base.slice(0, PER_FILE) });
+    for (const g of GENRES) {
+      files.push({ rel: `catalog/${row.type}/${row.id}/genre=${g}.json`, row, items: applyFilters(base, parseConfig({}), g).slice(0, PER_FILE) });
+    }
     base.slice(0, 6).forEach((i) => console.log(`  ${row.name} | ${i.name} (${i.year}) ★${i.rating ?? '-'} | ${i.release.episode || ''} ${i.release.title}`));
     summary.push(`${row.name}: ${base.length} titles (from ${feed.length} before filters)`);
   }
 
-  const installUrl = 'manifest.json';
+  // 2. Posters with the title printed under the artwork.
+  let posterMap = new Map();
+  if (TITLE_POSTERS) {
+    const unique = new Map();
+    files.forEach((f) => f.items.forEach((i) => unique.set(i.id, { id: i.id, name: i.name, poster: i.poster })));
+    posterMap = await buildPosters([...unique.values()], OUT, path.join(ROOT, '.poster-cache'));
+  }
+
+  // 3. Write catalog files.
+  for (const f of files) {
+    write(f.rel, {
+      metas: f.items.map((i) => {
+        const m = toMetaPreview(i, f.row.tier);
+        if (posterMap.has(i.id)) m.poster = SITE_URL + posterMap.get(i.id);
+        return m;
+      }),
+    });
+  }
+
   fs.writeFileSync(
     path.join(OUT, 'index.html'),
     `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -58,7 +83,7 @@ code{background:#222;padding:2px 6px;border-radius:4px;word-break:break-all}li{m
 <a class="b" id="app" href="#">Install in Stremio app</a>
 <p>Or paste this into Stremio's add-on search bar:<br><code id="u"></code></p>
 <h3>Last refresh</h3><p>${new Date().toUTCString()}</p><ul>${summary.map((s) => `<li>${s}</li>`).join('')}</ul>
-<script>const u=new URL('${installUrl}',location.href).href;document.getElementById('u').textContent=u;
+<script>const u=new URL('manifest.json',location.href).href;document.getElementById('u').textContent=u;
 document.getElementById('app').href=u.replace(/^https?:/,'stremio:');</script>`
   );
   fs.writeFileSync(path.join(OUT, '.nojekyll'), '');

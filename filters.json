@@ -6,5 +6,6 @@
   "genres": "",
   "genreMode": "any",
   "excludeGenres": "",
-  "includeUnrated": true
+  "includeUnrated": true,
+  "titleOnPoster": true
 }

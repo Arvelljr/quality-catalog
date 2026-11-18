@@ -44,6 +44,7 @@ async function fetchMovies(tier, pages = 3) {
         rating: typeof m.rating === 'number' && m.rating > 0 ? m.rating : null,
         genres: m.genres || [],
         poster: m.large_cover_image || null,
+        plot: m.summary || m.synopsis || null,
         releaseDate: torrent.date_uploaded_unix * 1000,
         release: { title: releaseName.trim(), ...parsed, source: torrent.type === 'web' ? 'WEB' : 'BluRay' },
         hasMeta: true,

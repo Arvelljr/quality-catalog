@@ -24,6 +24,7 @@ function getMeta(type, imdbId) {
       year: parseYear(m),
       genres: m.genres || m.genre || [],
       rating: Number.isFinite(rating) ? rating : null,
+      plot: m.description || null,
     };
   });
 }

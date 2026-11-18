@@ -19,7 +19,7 @@ function toMetaPreview(item, tier) {
     genres: item.genres,
     releaseInfo: item.year ? String(item.year) : undefined,
     imdbRating: item.rating !== null && item.rating !== undefined ? item.rating.toFixed(1) : undefined,
-    description: `${what} — added ${when}\n${rel.title || ''}`.trim(),
+    description: [item.plot, `${what} — added ${when}`].filter(Boolean).join('\n\n'),
   };
 }
 

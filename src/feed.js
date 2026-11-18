@@ -53,6 +53,7 @@ async function collect(type, tier, cfg) {
     item.year = item.year || meta.year;
     item.genres = item.genres && item.genres.length ? item.genres : meta.genres;
     if (meta.rating !== null) item.rating = meta.rating; // prefer live IMDb rating
+    item.plot = item.plot || meta.plot;
     item.hasMeta = true;
   });
 
