@@ -28,6 +28,7 @@ test('cam / TS / screener / HC releases are rejected', () => {
     'Spider-Man.2026.1080p.HC.HDRip.x264',
     'Spider-Man.2026.1080p.TC.x264',
     'Spider-Man.2026.2160p.AI.Upscaled.x265',
+    'Happy Gilmore (1996) 2160p AI BluRay 60fps H265 SDR DTS 5.1',
   ]) {
     assert.equal(parseRelease(n), null, n);
   }

@@ -8,7 +8,7 @@ const PAGE = 100;
 function toMetaPreview(item, tier) {
   const label = tier === '4k' ? '4K' : tier;
   const rel = item.release || {};
-  const tags = [label, rel.source !== 'Unknown' ? rel.source : null, rel.hdr ? 'HDR' : null].filter(Boolean).join(' · ');
+  const tags = [label, rel.source !== 'Unknown' ? rel.source : null, rel.hdr ? 'HDR' : null, rel.site || null].filter(Boolean).join(' · ');
   const when = item.releaseDate ? new Date(item.releaseDate).toISOString().slice(0, 10) : 'recently';
   const what = rel.episode ? `${rel.episode} available in ${tags}` : `Available in ${tags}`;
   return {

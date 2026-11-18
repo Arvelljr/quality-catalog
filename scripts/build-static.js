@@ -63,6 +63,7 @@ document.getElementById('app').href=u.replace(/^https?:/,'stremio:');</script>`
   );
   fs.writeFileSync(path.join(OUT, '.nojekyll'), '');
   console.log(summary.join('\n'));
+  console.log('Knaben sites seen:', JSON.stringify(require('../src/sources/knaben').trackerStats));
   if (total === 0) {
     console.error('All rows are empty: every source failed.');
     process.exit(1);

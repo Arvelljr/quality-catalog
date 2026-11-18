@@ -7,9 +7,10 @@ const yts = require('./sources/yts');
 const eztv = require('./sources/eztv');
 const torznab = require('./sources/torznab');
 const apibay = require('./sources/apibay');
+const knaben = require('./sources/knaben');
 
 const FEED_TTL = (parseInt(process.env.FEED_TTL_MIN, 10) || 30) * 60 * 1000;
-const SOURCES = [yts, eztv, apibay, torznab];
+const SOURCES = [yts, eztv, apibay, knaben, torznab];
 
 async function collect(type, tier, cfg) {
   const active = SOURCES.filter((s) => s.types.includes(type));

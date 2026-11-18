@@ -16,7 +16,7 @@ const JUNK = new RegExp(
 );
 
 // Fake 4K: upscales of 1080p sources.
-const UPSCALE = /(^|[^a-z0-9])(upscaled?|ai[-. ]?upscaled?|up[-. ]?scale)([^a-z0-9]|$)/i;
+const UPSCALE = /(^|[^a-z0-9])(upscaled?|ai[-. ]?upscaled?|up[-. ]?scale|ai|ds4k|60fps|regraded)([^a-z0-9]|$)/i;
 
 const RES_PATTERNS = [
   { tier: '4k', re: /(^|[^a-z0-9])(2160p|4k|uhd)([^a-z0-9]|$)/i },
