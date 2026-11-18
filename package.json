@@ -1,0 +1,18 @@
+{
+  "name": "stremio-quality-catalog",
+  "version": "1.0.0",
+  "description": "Stremio catalog add-on: latest movies & shows grouped by release quality (4K / 1080p), with genre, year and IMDb rating filters. Cam/TS/screener releases are excluded.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test test/*.test.js",
+    "build": "node scripts/build-static.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.4.0",
+    "stremio-addon-sdk": "^1.6.10"
+  }
+}

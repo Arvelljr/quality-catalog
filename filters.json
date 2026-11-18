@@ -1,0 +1,10 @@
+{
+  "_comment": "Filters baked into the hosted add-on. Leave a value blank (\"\") for no limit. Genre can also be picked live from the dropdown on each row in Stremio.",
+  "minRating": "",
+  "yearFrom": "",
+  "yearTo": "",
+  "genres": "",
+  "genreMode": "any",
+  "excludeGenres": "",
+  "includeUnrated": true
+}
