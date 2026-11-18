@@ -41,6 +41,7 @@ function write(rel, data) {
       write(`catalog/${row.type}/${row.id}/genre=${g}.json`, metas(applyFilters(base, parseConfig({}), g)));
     }
     total += feed.length;
+    base.slice(0, 6).forEach((i) => console.log(`  ${row.name} | ${i.name} (${i.year}) ★${i.rating ?? '-'} | ${i.release.episode || ''} ${i.release.title}`));
     summary.push(`${row.name}: ${base.length} titles (from ${feed.length} before filters)`);
   }
 
