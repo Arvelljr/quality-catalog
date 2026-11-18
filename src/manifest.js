@@ -13,7 +13,7 @@ const ROWS = [
 
 const manifest = {
   id: 'community.quality.catalog',
-  version: '1.0.0',
+  version: '1.1.0',
   name: 'Quality Catalog',
   description:
     'Latest movies & shows grouped by release quality (4K / 1080p). No cam, TS or screener releases. Filter by genre, year and IMDb rating.',
