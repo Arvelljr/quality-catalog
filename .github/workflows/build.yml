@@ -52,6 +52,8 @@ jobs:
           curl -fsS -D - "${URL}manifest.json" -o /dev/null | grep -iE "^HTTP|access-control-allow-origin"
           curl -fsS "${URL}catalog/movie/qc-movie-4k.json" -o live.json
           node -e "const m=require('./live.json').metas;console.log('LIVE 4K Movies:',m.length);console.log('LIVE first:',m[0].name,'|',m[0].poster);console.log('LIVE desc:',JSON.stringify(m[0].description).slice(0,300))"
+          curl -fsS "${URL}catalog/movie/qc-movie-4k/genre=2026%20%C2%B7%20Top%20rated.json" -o combo.json
+          node -e "const m=require('./combo.json').metas;console.log('LIVE 2026 Top rated:',m.length);m.slice(0,6).forEach(x=>console.log('  ',x.name,x.releaseInfo,x.imdbRating,'|',x.description.split('\\n')[0]))"
           P=$(node -e "console.log(require('./live.json').metas[0].poster)"); curl -fsS -o /dev/null -w "poster HTTP %{http_code} %{content_type} %{size_download}B\n" "$P"
       - name: Save poster preview
         if: github.event_name == 'push'

@@ -25,6 +25,7 @@ function getMeta(type, imdbId) {
       genres: m.genres || m.genre || [],
       rating: Number.isFinite(rating) ? rating : null,
       plot: m.description || null,
+      released: m.released || null,
     };
   });
 }

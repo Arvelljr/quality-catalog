@@ -3,11 +3,11 @@
 
 const fs = require('fs');
 const path = require('path');
-const { manifest, ROWS, GENRES } = require('../src/manifest');
+const { manifest, ROWS, OPTIONS } = require('../src/manifest');
 const { parseConfig } = require('../src/config');
-const { applyFilters } = require('../src/filters');
+const { applyFilters, applyDropdown } = require('../src/filters');
 const { getFeed } = require('../src/feed');
-const { toMetaPreview } = require('../src/catalog');
+const { toMetaPreview, releasedLabel } = require('../src/catalog');
 const { buildPosters } = require('./posters');
 
 const ROOT = path.join(__dirname, '..');
@@ -30,7 +30,7 @@ function write(rel, data) {
 
   const staticManifest = {
     ...manifest,
-    catalogs: manifest.catalogs.map((c) => ({ ...c, extra: [{ name: 'genre', options: GENRES, isRequired: false }] })),
+    catalogs: manifest.catalogs.map((c) => ({ ...c, extra: [{ name: 'genre', options: OPTIONS, isRequired: false }] })),
     behaviorHints: {},
   };
   delete staticManifest.config;
@@ -45,8 +45,8 @@ function write(rel, data) {
     const base = applyFilters(feed, cfg);
     total += feed.length;
     files.push({ rel: `catalog/${row.type}/${row.id}.json`, row, items: base.slice(0, PER_FILE) });
-    for (const g of GENRES) {
-      files.push({ rel: `catalog/${row.type}/${row.id}/genre=${g}.json`, row, items: applyFilters(base, parseConfig({}), g).slice(0, PER_FILE) });
+    for (const opt of OPTIONS) {
+      files.push({ rel: `catalog/${row.type}/${row.id}/genre=${opt}.json`, row, items: applyDropdown(base, opt).slice(0, PER_FILE) });
     }
     base.slice(0, 6).forEach((i) => console.log(`  ${row.name} | ${i.name} (${i.year}) ★${i.rating ?? '-'} | ${i.release.episode || ''} ${i.release.title}`));
     summary.push(`${row.name}: ${base.length} titles (from ${feed.length} before filters)`);
@@ -56,7 +56,7 @@ function write(rel, data) {
   let posterMap = new Map();
   if (TITLE_POSTERS) {
     const unique = new Map();
-    files.forEach((f) => f.items.forEach((i) => unique.set(i.id, { id: i.id, name: i.name, poster: i.poster })));
+    files.forEach((f) => f.items.forEach((i) => unique.set(i.id, { id: i.id, name: i.name, poster: i.poster, subtitle: releasedLabel(i) })));
     posterMap = await buildPosters([...unique.values()], OUT, path.join(ROOT, '.poster-cache'));
   }
 

@@ -71,3 +71,23 @@ test('title guessing from release names', () => {
   assert.deepEqual(guessTitle('Spider-Man.Beyond.2026.2160p.WEB-DL'), { title: 'Spider-Man Beyond', year: 2026 });
   assert.deepEqual(guessTitle('The.Bear.S04E02.2160p.WEB.h265'), { title: 'The Bear', year: null });
 });
+
+const { applyDropdown, dropdownOptions } = require('../src/filters');
+test('dropdown: year, top rated, and combined', () => {
+  const its = [
+    { id: 'a', year: 2026, rating: 6.1, genres: ['Action'], releaseDate: 3 },
+    { id: 'b', year: 2026, rating: 8.2, genres: ['Drama'], releaseDate: 2 },
+    { id: 'c', year: 2025, rating: 9.0, genres: ['Action'], releaseDate: 1 },
+    { id: 'd', year: 2026, rating: null, genres: ['Action'], releaseDate: 4 },
+    { id: 'e', year: 2015, rating: 7.0, genres: ['Action'], releaseDate: 5 },
+  ];
+  const ids = (a) => a.map((i) => i.id).join(',');
+  assert.equal(ids(applyDropdown(its, '2026')), 'a,b,d');
+  assert.equal(ids(applyDropdown(its, '2026 · Top rated')), 'b,a,d');
+  assert.equal(ids(applyDropdown(its, 'Top rated')), 'c,b,e,a,d');
+  assert.equal(ids(applyDropdown(its, 'Action · Top rated')), 'c,e,a,d');
+  assert.equal(ids(applyDropdown(its, 'Before 2022')), 'e');
+  const o = dropdownOptions(['Action'], new Date('2026-11-18'));
+  assert.deepEqual(o.slice(0, 5), ['Top rated', '2026', '2026 · Top rated', '2025', '2025 · Top rated']);
+  assert.ok(o.includes('Before 2022 · Top rated') && o.includes('Action · Top rated'));
+});

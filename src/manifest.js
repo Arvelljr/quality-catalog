@@ -4,6 +4,8 @@ const GENRES = [
   'Sport', 'Thriller', 'War', 'Western',
 ];
 
+const { dropdownOptions } = require('./filters');
+
 const ROWS = [
   { id: 'qc-movie-4k', type: 'movie', tier: '4k', name: '4K Movies' },
   { id: 'qc-movie-1080p', type: 'movie', tier: '1080p', name: '1080p Movies' },
@@ -13,7 +15,7 @@ const ROWS = [
 
 const manifest = {
   id: 'community.quality.catalog',
-  version: '1.1.0',
+  version: '1.2.0',
   name: 'Quality Catalog',
   description:
     'Latest movies & shows grouped by release quality (4K / 1080p). No cam, TS or screener releases. Filter by genre, year and IMDb rating.',
@@ -25,7 +27,7 @@ const manifest = {
     type: r.type,
     name: r.name,
     extra: [
-      { name: 'genre', options: GENRES, isRequired: false },
+      { name: 'genre', options: dropdownOptions(GENRES), isRequired: false },
       { name: 'skip', isRequired: false },
     ],
   })),
@@ -43,4 +45,4 @@ const manifest = {
   ],
 };
 
-module.exports = { manifest, ROWS, GENRES };
+module.exports = { manifest, ROWS, GENRES, OPTIONS: dropdownOptions(GENRES) };

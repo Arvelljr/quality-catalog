@@ -1,9 +1,21 @@
 const { ROWS } = require('./manifest');
 const { parseConfig } = require('./config');
-const { applyFilters } = require('./filters');
+const { applyFilters, applyDropdown } = require('./filters');
 const { getFeed } = require('./feed');
 
 const PAGE = 100;
+
+function formatDate(iso) {
+  const d = iso ? new Date(iso) : null;
+  if (!d || isNaN(d)) return null;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+}
+
+function releasedLabel(item) {
+  const d = formatDate(item.released);
+  if (d) return `${item.type === 'series' ? 'Premiered' : 'Released'} ${d}`;
+  return item.year ? `${item.type === 'series' ? 'Premiered' : 'Released'} ${item.year}` : null;
+}
 
 function toMetaPreview(item, tier) {
   const label = tier === '4k' ? '4K' : tier;
@@ -19,7 +31,7 @@ function toMetaPreview(item, tier) {
     genres: item.genres,
     releaseInfo: item.year ? String(item.year) : undefined,
     imdbRating: item.rating !== null && item.rating !== undefined ? item.rating.toFixed(1) : undefined,
-    description: [item.plot, `${what} — added ${when}`].filter(Boolean).join('\n\n'),
+    description: [releasedLabel(item), item.plot, `${what} — added ${when}`].filter(Boolean).join('\n\n'),
   };
 }
 
@@ -29,7 +41,7 @@ async function handleCatalog({ type, id, extra = {}, config = {} }) {
 
   const cfg = parseConfig(config);
   const feed = await getFeed(type, row.tier, cfg);
-  const filtered = applyFilters(feed, cfg, extra.genre);
+  const filtered = applyDropdown(applyFilters(feed, cfg), extra.genre);
   const skip = parseInt(extra.skip, 10) || 0;
 
   return {
@@ -39,4 +51,4 @@ async function handleCatalog({ type, id, extra = {}, config = {} }) {
   };
 }
 
-module.exports = { handleCatalog, toMetaPreview };
+module.exports = { handleCatalog, toMetaPreview, releasedLabel };
