@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -43,8 +43,23 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
-      - id: deploy
+      # GitHub sometimes can't see the just-uploaded files yet; wait and retry instead of failing.
+      - id: deploy1
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - if: steps.deploy1.outcome == 'failure'
+        run: sleep 60
+      - id: deploy2
+        if: steps.deploy1.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        run: sleep 120
+      - id: deploy3
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+      - id: deploy
+        run: echo "page_url=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> "$GITHUB_OUTPUT"
       - name: Verify live add-on
         run: |
           sleep 20
